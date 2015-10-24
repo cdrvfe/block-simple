@@ -147,7 +147,7 @@ window.onload = function () {
       gameScene.addChild(block);
     });
 
-    var bar = new Bar(0, 560, 20, 80)
+    var bar = new Bar(0, 560, game.width, 80)
 
     gameScene.on('enterframe', function() {
       blocks.some(function(block) {
