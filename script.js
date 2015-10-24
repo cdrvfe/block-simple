@@ -10,8 +10,8 @@ window.onload = function () {
       this.backgroundColor = 'white';
 	  this.x = x;
 	  this.y = y;
-      this.vx = 5;
-      this.vy = 5;
+      this.vx = 10;
+      this.vy = 10;
 	},
 
 	onenterframe: function(){
@@ -44,6 +44,28 @@ window.onload = function () {
       this.x = x;
       this.y = y;
       this.backgroundColor = 'white';
+
+	  this.active = true;
+	},
+	reflectBall: function(ball) {
+	  var left = this.x;
+	  var right = this.x + this.width;
+	  var dx = Math.min(left, right);
+
+	  var top = this.y;
+      var bottom = this.y + this.height;
+	  var dy = Math.min(top, bottom);
+
+	  var beforeBallLeft = ball.x - ball.vx;
+	  var beforeBallRight = ball.x - ball.vx + ball.width;
+
+	  if (dx < dy && (beforeBallRight < left || right < beforeBallLeft) ) {
+		ball.x -= ball.vx;
+	    ball.vx *= -1;
+	  } else {
+		ball.y -= ball.vy;
+	    ball.vy *= -1;
+	  }
 	}
   });
 
@@ -51,7 +73,7 @@ window.onload = function () {
     var gameScene = new Scene();
 	gameScene.backgroundColor = 'black';
 
-    var ball = new Ball(240, 480,32, 32)
+    var ball = new Ball(240, 480,16, 16)
 
 	var BLOCK_WIDTH = 60;
 	var BLOCK_HEIGHT = 15;
@@ -69,6 +91,18 @@ window.onload = function () {
 	  var block = new Block(x, y, BLOCK_WIDTH, BLOCK_HEIGHT);
 	  blocks.push(block);
 	  gameScene.addChild(block);
+	});
+
+	gameScene.on('enterframe', function() {
+	  blocks.some(function(block) {
+	    if (block.active && block.intersect(ball)) {
+			block.reflectBall(ball);
+		  block.active = false;
+		  gameScene.removeChild(block);
+		  return true;
+		}
+		return false;
+	  });
 	});
 
 	gameScene.addChild(ball);
