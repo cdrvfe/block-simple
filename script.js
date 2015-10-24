@@ -80,6 +80,49 @@ window.onload = function () {
 	}
   });
 
+  var Bar = Class.create(Sprite, {
+    initialize: function(x, y, width, height) {
+	  Sprite.call(this, width, height);
+
+	  this.x = x;
+	  this.y = y;
+	  this.backgroundColor = 'red';
+
+	  this.followingX = null;
+	},
+
+	follow: function() {
+	  if (this.followingX == null) { return; }
+
+	  var speed = 12;
+	  var dx = this.followingX - (this.x + this.width / 2);
+	  if (Math.abs(dx) < speed) {
+		this.x = this.followingX - this.width / 2;
+		return;
+	  }
+
+	  var direction = dx / Math.abs(dx);
+	  this.x += speed * direction;
+
+	  if (this.x < 0) { this.x = 0; }
+      if (this.x + this.width > game.width) { this.x = game.width - this.width; }
+	},
+
+	startFollow: function(followingX) {
+	  this.followingX = followingX;
+    },
+
+	endFollow: function() {
+	  this.followingX = null;
+    },
+
+	reflectBall: function(ball) {
+	  // とりあえず縦だけ
+	  ball.y -= ball.vy;
+	  ball.vy *= -1;
+	},
+  });
+
   game.onload = function () {
     var gameScene = new Scene();
 	gameScene.backgroundColor = 'black';
@@ -104,6 +147,8 @@ window.onload = function () {
 	  gameScene.addChild(block);
 	});
 
+	var bar = new Bar(0, 560, 120, 80)
+
 	gameScene.on('enterframe', function() {
 	  blocks.some(function(block) {
 	    if (block.active && block.intersect(ball)) {
@@ -114,13 +159,28 @@ window.onload = function () {
 		}
 		return false;
 	  });
+
+	  bar.follow();
+	  if (bar.intersect(ball)) {
+	    bar.reflectBall(ball);
+	  }
 	});
 
 	gameScene.on('touchstart', function(e) {
 	  ball.shoot(e.x, e.y);
+	  bar.startFollow(e.x);
+	});
+
+	gameScene.on('touchmove', function(e) {
+	  bar.startFollow(e.x);
+	});
+
+	gameScene.on('touchend', function() {
+	  bar.endFollow();
 	});
 
 	gameScene.addChild(ball);
+	gameScene.addChild(bar);
 
 	game.pushScene(gameScene);
   };
