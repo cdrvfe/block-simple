@@ -10,8 +10,9 @@ window.onload = function () {
       this.backgroundColor = 'white';
 	  this.x = x;
 	  this.y = y;
-      this.vx = 10;
-      this.vy = 10;
+	  this.vx = 0.0;
+	  this.vy = 0.0;
+	  this.shot = false;
 	},
 
 	onenterframe: function(){
@@ -34,6 +35,15 @@ window.onload = function () {
     	  this.vy *= -1;
     	  this.y = game.height - this.height;
       }
+	},
+
+	shoot: function(cx, cy) {
+	  if (this.shot) { return; }
+	  this.shot = true;
+
+	  angle = Math.atan2(cy - (this.y + this.height / 2), cx - (this.x + this.width / 2));
+	  this.vx = 10 * Math.cos(angle);
+	  this.vy = 10 * Math.sin(angle);
 	}
   });
 
@@ -47,6 +57,7 @@ window.onload = function () {
 
 	  this.active = true;
 	},
+
 	reflectBall: function(ball) {
 	  var left = this.x;
 	  var right = this.x + this.width;
@@ -73,7 +84,7 @@ window.onload = function () {
     var gameScene = new Scene();
 	gameScene.backgroundColor = 'black';
 
-    var ball = new Ball(240, 480,16, 16)
+    var ball = new Ball(240, 480, 16, 16)
 
 	var BLOCK_WIDTH = 60;
 	var BLOCK_HEIGHT = 15;
@@ -103,6 +114,10 @@ window.onload = function () {
 		}
 		return false;
 	  });
+	});
+
+	gameScene.on('touchstart', function(e) {
+	  ball.shoot(e.x, e.y);
 	});
 
 	gameScene.addChild(ball);
