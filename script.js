@@ -41,7 +41,7 @@ window.onload = function () {
       if (this.shot) { return; }
       this.shot = true;
 
-      angle = Math.atan2(cy - (this.y + this.height / 2), cx - (this.x + this.width / 2));
+      var angle = Math.atan2(cy - (this.y + this.height / 2), cx - (this.x + this.width / 2));
       this.vx = 10 * Math.cos(angle);
       this.vy = 10 * Math.sin(angle);
     }
@@ -127,6 +127,12 @@ window.onload = function () {
     var gameScene = new Scene();
     gameScene.backgroundColor = 'black';
 
+    var timeLabel = new Label();
+    timeLabel.x = 10;
+    timeLabel.y = 10;
+    timeLabel.color = 'gray';
+    timeLabel.text = '';
+
     var ball = new Ball(240, 480, 16, 16)
 
     var BLOCK_WIDTH = 60;
@@ -164,6 +170,9 @@ window.onload = function () {
       if (bar.intersect(ball)) {
         bar.reflectBall(ball);
       }
+
+      var time = game.frame / game.fps;
+      timeLabel.text = isFinite(time) ? parseInt(time) : '';
     });
 
     gameScene.on('touchstart', function(e) {
@@ -181,6 +190,7 @@ window.onload = function () {
 
     gameScene.addChild(ball);
     gameScene.addChild(bar);
+    gameScene.addChild(timeLabel);
 
     game.pushScene(gameScene);
   };
