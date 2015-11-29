@@ -194,6 +194,9 @@ window.onload = function () {
       // 時間表時
       _this.timeLabel = new Label();
 
+      // リトライ時のフレーム数(時間リセット用)
+      _this.retryFrame = 0;
+
       // ボール
       _this.ball = new Ball(16, 16)
 
@@ -242,6 +245,8 @@ window.onload = function () {
       _this.timeLabel.color = 'gray';
       _this.timeLabel.text = '';
 
+      _this.retryFrame = game.frame;
+
       //ボール
       _this.ball.resetStatus(240, 480);
 
@@ -262,7 +267,7 @@ window.onload = function () {
       _this = this;
 
       // 時間更新
-      var time = game.frame / game.fps;
+      var time = (game.frame - _this.retryFrame) / game.fps;
       _this.timeLabel.text = isFinite(time) ? parseInt(time) : '';
 
       // ブロックとボールの当たり判定
