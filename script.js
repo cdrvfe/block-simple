@@ -4,9 +4,11 @@ window.onload = function () {
   var game = new Game(480, 640);
 
   var Ball = Class.create(Sprite, {
-    initialize: function(x, y, width, height) {
+    initialize: function(width, height) {
       Sprite.call(this, width, height);
+    },
 
+    resetStatus: function(x, y) {
       this.backgroundColor = 'white';
       this.x = x;
       this.y = y;
@@ -51,13 +53,14 @@ window.onload = function () {
   });
 
   var Block = Class.create(Sprite, {
-    initialize: function(x, y, width, height) {
+    initialize: function(width, height) {
       Sprite.call(this, width, height)
+    },
 
+    resetStatus: function(x, y) {
       this.x = x;
       this.y = y;
       this.backgroundColor = 'white';
-
       this.active = true;
     },
 
@@ -99,9 +102,11 @@ window.onload = function () {
   });
 
   var Bar = Class.create(Sprite, {
-    initialize: function(x, y, width, height) {
+    initialize: function(width, height) {
       Sprite.call(this, width, height);
+    },
 
+    resetStatus: function(x, y){
       this.x = x;
       this.y = y;
       this.backgroundColor = 'red';
@@ -144,9 +149,11 @@ window.onload = function () {
   });
 
   var ClearScene = Class.create(Scene, {
-    initialize: function(time) {
+    initialize: function(time, gameController) {
+      _this = this;
+
       Scene.call(this);
-      this.backgroundColor = 'black'
+      _this.backgroundColor = 'black'
 
       var timeLabel = new Label();
       timeLabel.x = game.width / 2 - 30;
@@ -155,50 +162,51 @@ window.onload = function () {
       timeLabel.font = '30px sans-serif';
       timeLabel.text = parseInt(time);
 
-      this.addChild(timeLabel);
+      _this.addChild(timeLabel);
 
       this.on('touchstart', function(e) {
+        //リトライ
+        gameController.resetGameObjectStatus();
         game.popScene();
       });
     }
   });
 
   var GameController = Class.create({
+
     initialize: function(gameScene){
       _this = this;
+
+      _this.BLOCK_STATUS = {
+        width: 60,
+        height: 15,
+        positions: [
+          [1, 1]// , [1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
+          // [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6],
+          // [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6],
+          // [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6],
+          // [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6]
+        ]
+      }
 
       _this.scene = gameScene
 
       // 時間表時
       _this.timeLabel = new Label();
-      _this.timeLabel.x = 10;
-      _this.timeLabel.y = 10;
-      _this.timeLabel.color = 'gray';
-      _this.timeLabel.text = '';
 
       // ボール
-      _this.ball = new Ball(240, 480, 16, 16)
+      _this.ball = new Ball(16, 16)
 
       // ブロック
-      var BLOCK_WIDTH = 60;
-      var BLOCK_HEIGHT = 15;
-      var blockPositions = [
-        [1, 1]// , [1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
-        // [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6],
-        // [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6],
-        // [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6],
-        // [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6]
-      ];
       _this.blocks = [];
-      blockPositions.forEach(function(position) {
-        var x = position[0] * BLOCK_WIDTH;
-        var y = position[1] * BLOCK_HEIGHT;
-        var block = new Block(x, y, BLOCK_WIDTH, BLOCK_HEIGHT);
-        _this.blocks.push(block);
-      });
+      for(var i = 0; i < _this.BLOCK_STATUS.positions.length; i++) {
+        _this.blocks.push(new Block(_this.BLOCK_STATUS.width, _this.BLOCK_STATUS.height));
+      }
 
       // バー
-      _this.bar = new Bar(0, 560, game.width, 80)
+      _this.bar = new Bar(game.width, 80)
+
+      _this.resetGameObjectStatus();
 
       _this.scene.on('enterframe', function() {
         _this.onenterFrame();
@@ -225,6 +233,31 @@ window.onload = function () {
       });
     },
 
+    resetGameObjectStatus: function() {
+      _this = this;
+
+      // 時間表時
+      _this.timeLabel.x = 10;
+      _this.timeLabel.y = 10;
+      _this.timeLabel.color = 'gray';
+      _this.timeLabel.text = '';
+
+      //ボール
+      _this.ball.resetStatus(240, 480);
+
+      //バー
+      _this.bar.resetStatus(0, 560);
+
+      // ブロック
+      _this.BLOCK_STATUS.positions.forEach(function(position, index) {
+        block = _this.blocks[index];
+        var x = position[0] * _this.BLOCK_STATUS.width;
+        var y = position[1] * _this.BLOCK_STATUS.height;
+
+        block.resetStatus(x, y);
+      });
+    },
+
     onenterFrame: function() {
       _this = this;
 
@@ -242,7 +275,8 @@ window.onload = function () {
         return !block.active;
       });
       if (isClear) {
-        game.pushScene(new ClearScene(time));
+        game.pushScene(new ClearScene(time, _this));
+        return;
       }
 
       // バー移動
