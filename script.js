@@ -142,63 +142,95 @@ window.onload = function () {
       timeLabel.text = parseInt(time);
 
       this.addChild(timeLabel);
+
+      this.on('touchstart', function(e) {
+        game.popScene();
+      });
     }
   });
 
-  game.onload = function () {
-    var gameScene = new Scene();
-    gameScene.backgroundColor = 'black';
+  var GameController = Class.create({
+    initialize: function(gameScene){
+      _this = this;
 
-    // 時間表時
-    var timeLabel = new Label();
-    timeLabel.x = 10;
-    timeLabel.y = 10;
-    timeLabel.color = 'gray';
-    timeLabel.text = '';
+      _this.scene = gameScene
 
-    // ボール
-    var ball = new Ball(240, 480, 16, 16)
+      // 時間表時
+      _this.timeLabel = new Label();
+      _this.timeLabel.x = 10;
+      _this.timeLabel.y = 10;
+      _this.timeLabel.color = 'gray';
+      _this.timeLabel.text = '';
 
-    // ブロック
-    var BLOCK_WIDTH = 60;
-    var BLOCK_HEIGHT = 15;
-    var blockPositions = [
-      [1, 1]// , [1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
-      // [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6],
-      // [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6],
-      // [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6],
-      // [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6]
-    ];
-    var blocks = [];
-    blockPositions.forEach(function(position) {
-      var x = position[0] * BLOCK_WIDTH;
-      var y = position[1] * BLOCK_HEIGHT;
-      var block = new Block(x, y, BLOCK_WIDTH, BLOCK_HEIGHT);
-      blocks.push(block);
-      gameScene.addChild(block);
-    });
+      // ボール
+      _this.ball = new Ball(240, 480, 16, 16)
 
-    // バー
-    var bar = new Bar(0, 560, game.width, 80)
+      // ブロック
+      var BLOCK_WIDTH = 60;
+      var BLOCK_HEIGHT = 15;
+      var blockPositions = [
+        [1, 1]// , [1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
+        // [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6],
+        // [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6],
+        // [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6],
+        // [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6]
+      ];
+      _this.blocks = [];
+      blockPositions.forEach(function(position) {
+        var x = position[0] * BLOCK_WIDTH;
+        var y = position[1] * BLOCK_HEIGHT;
+        var block = new Block(x, y, BLOCK_WIDTH, BLOCK_HEIGHT);
+        _this.blocks.push(block);
+      });
 
-    gameScene.on('enterframe', function() {
+      // バー
+      _this.bar = new Bar(0, 560, game.width, 80)
+
+      _this.scene.on('enterframe', function() {
+        _this.onenterFrame();
+      });
+
+      _this.scene.on('touchstart', function(e) {
+        _this.ball.shoot(e.x, e.y);
+        _this.bar.startFollow(e.x);
+      });
+
+      _this.scene.on('touchmove', function(e) {
+        _this.bar.startFollow(e.x);
+      });
+
+      _this.scene.on('touchend', function() {
+        _this.bar.endFollow();
+      });
+
+      _this.scene.addChild(_this.ball);
+      _this.scene.addChild(_this.bar);
+      _this.scene.addChild(_this.timeLabel);
+      _this.blocks.forEach(function(block){
+        _this.scene.addChild(block);
+      });
+    },
+
+    onenterFrame: function() {
+      _this = this;
+
       // 時間更新
       var time = game.frame / game.fps;
-      timeLabel.text = isFinite(time) ? parseInt(time) : '';
+      _this.timeLabel.text = isFinite(time) ? parseInt(time) : '';
 
       // ブロックとボールの当たり判定
-      blocks.some(function(block) {
-        if (block.active && block.intersect(ball)) {
-            block.reflectBall(ball);
+      _this.blocks.some(function(block) {
+        if (block.active && block.intersect(_this.ball)) {
+            block.reflectBall(_this.ball);
           block.active = false;
-          gameScene.removeChild(block);
+          _this.scene.removeChild(block);
           return true;
         }
         return false;
       });
 
       // クリア判定
-      var isClear = blocks.every(function(block) {
+      var isClear = _this.blocks.every(function(block) {
         return !block.active;
       });
       if (isClear) {
@@ -206,28 +238,18 @@ window.onload = function () {
       }
 
       // バー移動
-      bar.follow();
-      if (bar.intersect(ball)) {
-        bar.reflectBall(ball);
+      _this.bar.follow();
+      if (_this.bar.intersect(_this.ball)) {
+        _this.bar.reflectBall(_this.ball);
       }
-    });
+    }
+  });
 
-    gameScene.on('touchstart', function(e) {
-      ball.shoot(e.x, e.y);
-      bar.startFollow(e.x);
-    });
+  game.onload = function () {
+    var gameScene = new Scene();
+    gameScene.backgroundColor = 'black';
 
-    gameScene.on('touchmove', function(e) {
-      bar.startFollow(e.x);
-    });
-
-    gameScene.on('touchend', function() {
-      bar.endFollow();
-    });
-
-    gameScene.addChild(ball);
-    gameScene.addChild(bar);
-    gameScene.addChild(timeLabel);
+    controller = new GameController(gameScene);
 
     game.pushScene(gameScene);
   };
