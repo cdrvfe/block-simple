@@ -81,6 +81,20 @@ window.onload = function () {
         ball.y -= ball.vy;
         ball.vy *= -1;
       }
+    },
+
+    // ボールとの衝突確認
+    checkCollision: function(ball){
+      if (!this.active) { return false; }
+
+      if (this.intersect(ball)) {
+        this.reflectBall(ball);
+        this.active = false;
+        this.backgroundColor = 'black';
+        return true;
+      }
+
+      return false;
     }
   });
 
@@ -220,13 +234,7 @@ window.onload = function () {
 
       // ブロックとボールの当たり判定
       _this.blocks.some(function(block) {
-        if (block.active && block.intersect(_this.ball)) {
-            block.reflectBall(_this.ball);
-          block.active = false;
-          _this.scene.removeChild(block);
-          return true;
-        }
-        return false;
+        return block.checkCollision(_this.ball);
       });
 
       // クリア判定
