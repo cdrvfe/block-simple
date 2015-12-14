@@ -10,6 +10,18 @@ window.onload = function () {
   var Ball = Class.create(Sprite, {
     initialize: function(width, height) {
       Sprite.call(this, width, height);
+
+      this.followEffects = []
+      for(var i = 0; i < 4; i++) {
+        var presence = 1 - 0.2 * (i + 1);
+
+        var effect = new Sprite(width, height);
+        effect.image = game.assets['ball.png']
+        effect.opacity = presence;
+        effect.scale(presence, presence);
+
+        this.followEffects.push(effect);
+      }
     },
 
     resetStatus: function(x, y) {
@@ -19,9 +31,25 @@ window.onload = function () {
       this.vy = 0.0;
       this.shot = false;
       this.image = game.assets['ball.png'];
+
+      this.followEffects.forEach(function(effect){
+        effect.x = this.x;
+        effect.y = this.y;
+      });
     },
 
     onenterframe: function(){
+      //エフェクト移動
+      for(var i = 2; i > 0; i--) {
+        var effect = this.followEffects[i];
+        var prevEffect = this.followEffects[i-1];
+
+        effect.x = prevEffect.x;
+        effect.y = prevEffect.y;
+      }
+
+      this.followEffects[0].x = this.x;
+      this.followEffects[0].y = this.y;
       // 移動
       this.x += this.vx;
       this.y += this.vy;
@@ -240,6 +268,10 @@ window.onload = function () {
         _this.bar.endFollow();
       });
 
+      _this.scene.addChild(_this.ball);
+      _this.ball.followEffects.forEach(function(effect){
+        _this.scene.addChild(effect);
+      });
       _this.scene.addChild(_this.ball);
       _this.scene.addChild(_this.bar);
       _this.scene.addChild(_this.timeLabel);
