@@ -3,18 +3,22 @@ enchant();
 window.onload = function () {
   var game = new Game(480, 640);
 
+  game.preload('ball.png');
+  game.preload('bar.png');
+  game.preload('block.png');
+
   var Ball = Class.create(Sprite, {
     initialize: function(width, height) {
       Sprite.call(this, width, height);
     },
 
     resetStatus: function(x, y) {
-      this.backgroundColor = 'white';
       this.x = x;
       this.y = y;
       this.vx = 0.0;
       this.vy = 0.0;
       this.shot = false;
+      this.image = game.assets['ball.png'];
     },
 
     onenterframe: function(){
@@ -39,6 +43,9 @@ window.onload = function () {
           this.vy *= -1;
           this.y = game.height - this.height;
       }
+
+      //アニメーション
+      this.frame = (this.age / 4) % 2;
     },
 
     // 指定座標方向に移動を開始
@@ -60,9 +67,9 @@ window.onload = function () {
     resetStatus: function(x, y) {
       this.x = x;
       this.y = y;
-      this.backgroundColor = 'white';
       this.active = true;
       this.visible = true;
+      this.image = game.assets['block.png'];
     },
 
     // ボールを反射させる
@@ -99,6 +106,10 @@ window.onload = function () {
       }
 
       return false;
+    },
+
+    onenterframe: function(){
+      this.frame = (this.age / 3) % 3;
     }
   });
 
@@ -110,7 +121,7 @@ window.onload = function () {
     resetStatus: function(x, y){
       this.x = x;
       this.y = y;
-      this.backgroundColor = 'red';
+      this.image = game.assets['bar.png'];
 
       this.followingX = null;
     },
@@ -159,7 +170,7 @@ window.onload = function () {
       var timeLabel = new Label();
       timeLabel.x = game.width / 2 - 30;
       timeLabel.y = game.height / 2 - 15;
-      timeLabel.color = 'white';
+      timeLabel.color = '#32C8FA';
       timeLabel.font = '30px sans-serif';
       timeLabel.text = parseInt(time);
 
@@ -243,7 +254,7 @@ window.onload = function () {
       // 時間表時
       _this.timeLabel.x = 10;
       _this.timeLabel.y = 10;
-      _this.timeLabel.color = 'gray';
+      _this.timeLabel.color = '#16647C';
       _this.timeLabel.text = '';
 
       _this.retryFrame = game.frame;
