@@ -248,8 +248,8 @@ window.onload = function () {
       // 時間表時
       _this.timeLabel = new Label();
 
-      // リトライ時のフレーム数(時間リセット用)
-      _this.retryFrame = 0;
+      // 発射時のフレーム数(時間計測用)
+      _this.shotFrame = null;
 
       // ボール
       _this.ball = new Ball(16, 16)
@@ -270,7 +270,10 @@ window.onload = function () {
       });
 
       _this.scene.on('touchstart', function(e) {
-        _this.ball.shoot(e.x, e.y);
+        if (_this.shotFrame == null) {
+          _this.shotFrame = game.frame;
+          _this.ball.shoot(e.x, e.y);
+        }
         _this.bar.startFollow(e.x);
       });
 
@@ -303,7 +306,7 @@ window.onload = function () {
       _this.timeLabel.color = '#16647C';
       _this.timeLabel.text = '';
 
-      _this.retryFrame = game.frame;
+      _this.shotFrame = null;
 
       //ボール
       _this.ball.resetStatus(240, 480);
@@ -323,10 +326,12 @@ window.onload = function () {
 
     onenterFrame: function() {
       _this = this;
+      var time = _this.shotFrame == null ? null : (game.frame - _this.shotFrame) / game.fps;
 
       // 時間更新
-      var time = (game.frame - _this.retryFrame) / game.fps;
-      _this.timeLabel.text = isFinite(time) ? parseInt(time) : '';
+      if (_this.shotFrame != null) {
+        _this.timeLabel.text = isFinite(time) ? parseInt(time) : '';
+      }
 
       // ブロックとボールの当たり判定
       _this.blocks.some(function(block) {
