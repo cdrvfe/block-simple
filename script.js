@@ -101,23 +101,34 @@ window.onload = function () {
     },
 
     // ボールを反射させる
-    reflectBall: function(ball) {
-      var left = this.x;
-      var right = this.x + this.width;
-      var dx = Math.min(left, right);
+    reflectBall: function(ball, rate) {
+      var RATE_INTERVAL = 0.2
 
-      var top = this.y;
-      var bottom = this.y + this.height;
-      var dy = Math.min(top, bottom);
+      var ballLeft = ball.x + ball.vx * rate
+      var ballRight = ball.x + ball.width + ball.vx * rate
+      var ballTop = ball.y + ball.vy * rate
+      var ballBottom = ball.y + ball.height + ball.vy * rate
 
-      var beforeBallLeft = ball.x - ball.vx;
-      var beforeBallRight = ball.x - ball.vx + ball.width;
+      // 矩形として接触するまで徐々に近づける
+      if (ballRight < this.x || ballLeft >= this.x + this.width
+          || ballBottom < this.y || ballTop >= this.y + this.height){
+        this.reflectBall(ball, rate + RATE_INTERVAL);
+        return;
+      }
 
-      if (dx < dy && (beforeBallRight < left || right < beforeBallLeft) ) {
-        ball.x -= ball.vx;
+      var leftDiff = Math.abs(this.x - (ballLeft + ballRight) / 2);
+      var rightDiff = Math.abs(this.x + this.width - (ballLeft + ballRight) / 2);
+      var dx = leftDiff;
+      if (ball.vx < 0) { dx = rightDiff; }
+
+      var topDiff = Math.abs(this.y - (ballTop + ballBottom) / 2);
+      var bottomDiff = Math.abs(this.y + this.height - (ballTop + ballBottom) / 2);
+      var dy = topDiff;
+      if (ball.vy < 0) { dy = bottomDiff; }
+
+      if (dx < dy) {
         ball.vx *= -1;
       } else {
-        ball.y -= ball.vy;
         ball.vy *= -1;
       }
     },
@@ -127,7 +138,10 @@ window.onload = function () {
       if (!this.active) { return false; }
 
       if (this.intersect(ball)) {
-        this.reflectBall(ball);
+        ball.x -= ball.vx;
+        ball.y -= ball.vy;
+        this.reflectBall(ball, 0.0);
+
         this.active = false;
         this.visible = false;
         return true;
@@ -221,11 +235,11 @@ window.onload = function () {
         width: 60,
         height: 15,
         positions: [
-          [1, 1]//, [2, 1], [3, 1], [4, 1], [5, 1], [6, 1],
-          //[1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2],
-          //[1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3],
-          //[1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [6, 4],
-          //[1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5],
+          [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1],
+          [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2],
+          [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3],
+          [1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [6, 4],
+          [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5]
         ]
       }
 
